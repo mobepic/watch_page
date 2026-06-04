@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHERIA - The Luxury Smartwatch</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f2eb;
+            overflow-x: hidden;
+        }
+        .font-serif {
+            font-family: 'Cinzel', serif;
+        }
+        /* Hide scrollbars but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        html {
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="relative text-neutral-900">
+
+    <div class="fixed inset-0 w-full h-full pointer-events-none z-10">
+        <div id="canvas-container" class="absolute inset-0 w-full h-full pointer-events-auto"></div>
+        
+        <canvas id="iris-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-20"></canvas>
+    </div>
+
+    <header class="fixed top-0 left-0 w-full z-40 p-8 flex justify-between items-center opacity-0 transform -translate-y-4 header-anim">
+        <a href="#" class="font-serif text-2xl font-bold tracking-widest text-neutral-800 mix-blend-difference">ÆTHERIA</a>
+        <nav class="hidden md:flex space-x-12 text-sm tracking-widest uppercase font-medium text-neutral-600 mix-blend-difference">
+            <a href="#design" class="hover:text-black transition-colors">Design</a>
+            <a href="#craft" class="hover:text-black transition-colors">Craftsmanship</a>
+            <a href="#features" class="hover:text-black transition-colors">Intelligence</a>
+        </nav>
+        <button class="border border-neutral-800 px-6 py-2 text-xs uppercase tracking-widest hover:bg-neutral-900 hover:text-white transition-all duration-300 pointer-events-auto">Pre-Order</button>
+    </header>
+
+    <main class="relative z-30">
+        
+        <section id="hero" class="min-h-screen flex flex-col justify-between p-8 md:p-16 relative">
+            <div class="mt-32 max-w-xl">
+                <span class="text-xs uppercase tracking-widest text-neutral-500 font-semibold mb-2 block opacity-0 tracking-anim">Chronograph Reimagined</span>
+                <h1 class="font-serif text-5xl md:text-7xl font-bold tracking-tight text-neutral-900 mb-6 opacity-0 heading-anim">Horology<br>Meets Mind.</h1>
+                <p class="text-neutral-600 font-light leading-relaxed max-w-sm opacity-0 body-anim">An architectural statement of precision-milled titanium and bespoke bio-metric display rings.</p>
+            </div>
+            
+            <div class="flex justify-between items-end mb-8">
+                <div class="opacity-0 num-anim font-serif text-[12vw] leading-none font-bold text-neutral-800/10 selection:bg-transparent">01</div>
+                <div class="text-xs uppercase tracking-widest text-neutral-400 flex items-center space-x-2 animate-bounce">
+                    <span>Scroll to explore</span>
+                    <span>↓</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="craft" class="min-h-screen flex flex-col justify-center items-end p-8 md:p-16">
+            <div class="max-w-md md:mr-12">
+                <span class="text-xs uppercase tracking-widest text-neutral-500 font-semibold mb-2 block">Grade 5 Titanium</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-6 text-neutral-900">Forged in Silence.</h2>
+                <p class="text-neutral-600 font-light leading-relaxed mb-6">Every chassis undergoes 48 hours of diamond-carbide brushing, balancing a lightweight architecture with an armor-grade structural profile.</p>
+                <div class="font-serif text-[12vw] leading-none font-bold text-neutral-800/10 text-right">02</div>
+            </div>
+        </section>
+
+        <section id="features" class="min-h-screen flex flex-col justify-center items-start p-8 md:p-16">
+            <div class="max-w-md md:ml-12">
+                <span class="text-xs uppercase tracking-widest text-neutral-500 font-semibold mb-2 block">Bespoke UI Rings</span>
+                <h2 class="font-serif text-4xl md:text-5xl font-semibold mb-6 text-neutral-900">Vitality, Indexed.</h2>
+                <p class="text-neutral-600 font-light leading-relaxed mb-6">Interactive, laser-sharp display rings map your circadian cadence and physical outputs natively onto the mechanical analog plane.</p>
+                <div class="font-serif text-[12vw] leading-none font-bold text-neutral-800/10">03</div>
+            </div>
+        </section>
+
+        <section id="reserve" class="min-h-screen flex flex-col justify-between items-center p-8 md:p-16 text-center">
+            <div class="my-auto max-w-xl">
+                <span class="text-xs uppercase tracking-widest text-neutral-500 font-semibold mb-2 block">Limited Production</span>
+                <h2 class="font-serif text-5xl md:text-6xl font-bold mb-8 text-neutral-900">Elevate Your Cadence.</h2>
+                <p class="text-neutral-600 font-light leading-relaxed mb-8 max-w-md mx-auto">Allocations for the initial forging cycle are strictly limited to 500 uniquely registered timepieces.</p>
+                <button class="bg-neutral-900 text-white font-serif px-10 py-4 text-sm uppercase tracking-widest hover:bg-neutral-800 transition-all duration-300 pointer-events-auto shadow-xl">Secure Allocation</button>
+            </div>
+            <div class="font-serif text-[12vw] leading-none font-bold text-neutral-800/5">04</div>
+        </section>
+        
+    </main>
+
+    <script>
+        // --- GLOBALS & SCROLL CONFIG ---
+        let scene, camera, renderer, watchGroup;
+        let glassDome, watchFaceCanvas, watchFaceTexture, dialContext;
+        let currentScrollProgress = 0;
+        let targetScrollProgress = 0;
+        const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+
+        // Configuration mapping scroll progress (0.0 to 1.0) to 3D Watch transform states
+        const scrollTimeline = [
+            { s: 0.0, px: 0,   py: 0.2,   pz: 0, rx: 0.3,  ry: -0.4, rz: 0 },       // Hero: Front-angled showcase
+            { s: 0.33, px: -2, py: -0.2, pz: -1, rx: 0.5,  ry: 1.2,  rz: -0.5 },    // Section 2: Angled profile view (left)
+            { s: 0.66, px: 2,  py: 0,    pz: 0, rx: -0.2, ry: -1.5, rz: 0.2 },     // Section 3: Face macro close-up (right)
+            { s: 1.0,  px: 0,   py: -0.4,  pz: 1.2, rx: 1.4,  ry: 0,    rz: 0 }        // Section 4: Top-down design profile
+        ];
+
+        // --- 1. INITIALIZATION ---
+        function init() {
+            initThree();
+            buildWatch();
+            initIrisCanvas();
+            initEventListeners();
+            animateEntrance();
+            animateLoop();
+        }
+
+        // --- 2. THREE.JS SCENE SETUP ---
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            // Fog smoothly fades watch out into background color in extreme scroll views
+            scene.fog = new THREE.FogExp2(0xf5f2eb, 0.15);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.z = 7;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            // Lighting Design
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            const keyLight = new THREE.DirectionalLight(0xfff5ea, 2.0);
+            keyLight.position.set(5, 8, 5);
+            scene.add(keyLight);
+
+            const fillLight = new THREE.DirectionalLight(0xdbe9ff, 1.2);
+            fillLight.position.set(-5, -2, 2);
+            scene.add(fillLight);
+
+            const rimLight = new THREE.DirectionalLight(0xffffff, 3.0);
+            rimLight.position.set(0, 4, -6);
+            scene.add(rimLight);
+
+            watchGroup = new THREE.Group();
+            scene.add(watchGroup);
+        }
+
+        // --- 3. PROCEDURAL WATCH GENERATION ---
+        function buildWatch() {
+            // High-end Material Specs
+            const titaniumMaterial = new THREE.MeshStandardMaterial({
+                color: 0x686b73,
+                metalness: 0.95,
+                roughness: 0.22,
+                wireframe: false
+            });
+
+            const goldAccentMaterial = new THREE.MeshStandardMaterial({
+                color: 0xd4af37,
+                metalness: 0.9,
+                roughness: 0.15
+            });
+
+            const strapMaterial = new THREE.MeshStandardMaterial({
+                color: 0x1c1d21,
+                metalness: 0.1,
+                roughness: 0.85
+            });
+
+            // Watch Outer Chassis
+            const caseGeo = new THREE.CylinderGeometry(2, 2, 0.4, 64);
+            const caseMesh = new THREE.Mesh(caseGeo, titaniumMaterial);
+            caseMesh.rotation.x = Math.PI / 2;
+            watchGroup.add(caseMesh);
+
+            // Bezel Detail Ring
+            const bezelGeo = new THREE.TorusGeometry(1.95, 0.06, 16, 100);
+            const bezel = new THREE.Mesh(bezelGeo, goldAccentMaterial);
+            bezel.position.z = 0.21;
+            watchGroup.add(bezel);
+
+            // Crown Button
+            const crownGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.3, 32);
+            const crown = new THREE.Mesh(crownGeo, titaniumMaterial);
+            crown.rotation.z = Math.PI / 2;
+            crown.position.set(2.1, 0, 0);
+            watchGroup.add(crown);
+
+            // Strap Connectors & Straps
+            const strapGeo = new THREE.BoxGeometry(1.2, 2.5, 0.25);
+            
+            const topStrap = new THREE.Mesh(strapGeo, strapMaterial);
+            topStrap.position.set(0, 2.2, -0.1);
+            topStrap.rotation.x = -0.12; 
+            watchGroup.add(topStrap);
+
+            const bottomStrap = topStrap.clone();
+            bottomStrap.position.set(0, -2.2, -0.1);
+            bottomStrap.rotation.x = 0.12;
+            watchGroup.add(bottomStrap);
+
+            // DYNAMIC WATCH FACE (Canvas Texture)
+            watchFaceCanvas = document.createElement('canvas');
+            watchFaceCanvas.width = 1024;
+            watchFaceCanvas.height = 1024;
+            dialContext = watchFaceCanvas.getContext('2d');
+
+            watchFaceTexture = new THREE.CanvasTexture(watchFaceCanvas);
+            const faceMat = new THREE.MeshBasicMaterial({ map: watchFaceTexture, transparent: true });
+            
+            const faceGeo = new THREE.PlaneGeometry(3.7, 3.7);
+            const faceMesh = new THREE.Mesh(faceGeo, faceMat);
+            faceMesh.position.z = 0.201; 
+            watchGroup.add(faceMesh);
+
+            // HIGH-END GLASS DOME WITH REFLECTIONS
+            const glassGeo = new THREE.SphereGeometry(1.86, 40, 40, 0, Math.PI * 2, 0, Math.PI / 2);
+            glassDome = new THREE.Mesh(glassGeo, new THREE.MeshPhysicalMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.25,
+                roughness: 0.05,
+                metalness: 0.1,
+                transmission: 0.9,
+                ior: 1.5,
+                thickness: 0.2,
+                specularIntensity: 1.0,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.02
+            }));
+            glassDome.rotation.x = Math.PI / 2;
+            glassDome.position.z = 0.2;
+            watchGroup.add(glassDome);
+        }
+
+        // --- 4. DRAW FUNCTION FOR WATCH FACE TEXTURE ---
+        function updateWatchFaceData() {
+            const ctx = dialContext;
+            const w = watchFaceCanvas.width;
+            const h = watchFaceCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Charcoal Elegant Dial Background
+            ctx.fillStyle = "#16171a";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 500, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Outer Tick Marks
+            ctx.strokeStyle = "rgba(255,255,255,0.15)";
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 60; i++) {
+                const angle = (i * Math.PI / 30);
+                const len = i % 5 === 0 ? 30 : 15;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * 460, cy + Math.sin(angle) * 460);
+                ctx.lineTo(cx + Math.cos(angle) * (460 - len), cy + Math.sin(angle) * (460 - len));
+                ctx.stroke();
+            }
+
+            const now = new Date();
+            const timeSec = now.getSeconds() + now.getMilliseconds() / 1000;
+            const timeMin = now.getMinutes() + timeSec / 60;
+            const timeHr = now.getHours() + timeMin / 60;
+
+            // DRAW FITNESS/VITALITY RINGS (Procedural Data Graphics)
+            // Ring 1: Cardio Cadence (Outer Red/Orange Ring)
+            drawUIRing(ctx, cx, cy, 370, 24, 0.78 + Math.sin(timeSec * 0.1) * 0.05, "#ff4757");
+            // Ring 2: Circadian Flux (Middle Blue Ring)
+            drawUIRing(ctx, cx, cy, 310, 24, 0.55 + Math.cos(timeSec * 0.04) * 0.03, "#2ed573");
+            // Ring 3: Recovery Balance (Inner Gold Ring)
+            drawUIRing(ctx, cx, cy, 250, 24, 0.88, "#eccc68");
+
+            // Luxury Minimal Typography Interface
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "300 32px 'Inter'";
+            ctx.textAlign = "center";
+            ctx.letterSpacing = "6px";
+            ctx.fillText("ÆTHERIA", cx, cy - 100);
+
+            ctx.fillStyle = "rgba(255,255,255,0.5)";
+            ctx.font = "600 24px 'Inter'";
+            ctx.fillText("98 BPM", cx, cy + 120);
+
+            // ANALOG WATCH HANDS
+            // Hour Hand
+            drawHand(ctx, cx, cy, (timeHr % 12) * (Math.PI / 6) - Math.PI / 2, 200, 10, "#ffffff");
+            // Minute Hand
+            drawHand(ctx, cx, cy, timeMin * (Math.PI / 30) - Math.PI / 2, 320, 7, "#ffffff");
+            // Second Hand
+            drawHand(ctx, cx, cy, timeSec * (Math.PI / 30) - Math.PI / 2, 410, 3, "#d4af37");
+
+            // Center Pin
+            ctx.fillStyle = "#d4af37";
+            ctx.beginPath();
+            ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+            ctx.fill();
+
+            watchFaceTexture.needsUpdate = true;
+        }
+
+        function drawUIRing(ctx, cx, cy, radius, width, progress, color) {
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = color;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            // Start rings from top offset (-PI/2)
+            ctx.arc(cx, cy, radius, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * progress));
+            ctx.stroke();
+        }
+
+        function drawHand(ctx, cx, cy, angle, length, width, color) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "rgba(0,0,0,0.5)";
+            ctx.beginPath();
+            ctx.moveTo(cx - Math.cos(angle) * 40, cy - Math.sin(angle) * 40); // small counter balance counter weight
+            ctx.lineTo(cx + Math.cos(angle) * length, cy + Math.sin(angle) * length);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // --- 5. AUTOMATED IRIS CANVAS OVERLAY ---
+        let irisRadiusScale = 0.0; // Starts closed
+
+        function initIrisCanvas() {
+            const canvas = document.getElementById('iris-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function drawIrisOverlay() {
+            const canvas = document.getElementById('iris-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Compute optimal baseline radius based on screen real-estate
+            const baseTargetRadius = Math.min(w, h) * 0.32;
+            const currentRadius = baseTargetRadius * irisRadiusScale;
+
+            if (currentRadius < Math.max(w, h) * 1.5) {
+                // Outer Luxury Charcoal Textured Mask Layer
+                ctx.fillStyle = "#1e1f22";
+                ctx.fillRect(0, 0, w, h);
+
+                // Cut out the clean Iris tracking hole via Destination-Out composite mode
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalCompositeOperation = 'source-over';
+
+                // Elegant micro-border ring outlining the Iris perimeter
+                ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // --- 6. SCROLL TIMELINE MATRIX INTERPOLATION ---
+        function updateWatchTransform() {
+            // Find bounding anchor keyframes within scroll configuration mapping array
+            let lower = scrollTimeline[0];
+            let upper = scrollTimeline[scrollTimeline.length - 1];
+
+            for (let i = 0; i < scrollTimeline.length - 1; i++) {
+                if (currentScrollProgress >= scrollTimeline[i].s && currentScrollProgress <= scrollTimeline[i + 1].s) {
+                    lower = scrollTimeline[i];
+                    upper = scrollTimeline[i + 1];
+                    break;
+                }
+            }
+
+            // Normalise progress inside current scroll window block segmentation
+            const segmentProgress = (currentScrollProgress - lower.s) / (upper.s - lower.s);
+            // Ease transform calculation linearly across mapped timeline frames
+            const lerp = (start, end, amt) => start + (end - start) * amt;
+
+            // Compute structural layout transformations
+            const targetX = lerp(lower.px, upper.px, segmentProgress);
+            const targetY = lerp(lower.py, upper.py, segmentProgress);
+            const targetZ = lerp(lower.pz, upper.pz, segmentProgress);
+
+            const targetRotX = lerp(lower.rx, upper.rx, segmentProgress);
+            const targetRotY = lerp(lower.ry, upper.ry, segmentProgress);
+            const targetRotZ = lerp(lower.rz, upper.rz, segmentProgress);
+
+            // Smoothly ease position and orientation values across delta ticks
+            watchGroup.position.x = lerp(watchGroup.position.x, targetX, 0.08);
+            watchGroup.position.y = lerp(watchGroup.position.y, targetY, 0.08);
+            watchGroup.position.z = lerp(watchGroup.position.z, targetZ, 0.08);
+
+            // Inject Cursor Parallax Shifts non-destructively alongside raw scroll matrices
+            watchGroup.rotation.x = lerp(watchGroup.rotation.x, targetRotX + (mouse.y * 0.15), 0.08);
+            watchGroup.rotation.y = lerp(watchGroup.rotation.y, targetRotY + (mouse.x * 0.15), 0.08);
+            watchGroup.rotation.z = lerp(watchGroup.rotation.z, targetRotZ, 0.08);
+        }
+
+        // --- 7. ANIMATION SYSTEMS & RENDERING LOOP ---
+        function animateEntrance() {
+            // Anime.js Core UI Elements Sequences Orchestration
+            const tl = anime.timeline({ easing: 'easeOutQuart' });
+
+            tl.add({
+                targets: 'body',
+                duration: 1
+            }).add({
+                // Animate procedural Iris hole diameter geometry factor value
+                targets: { value: 0 },
+                value: 1.0,
+                duration: 1800,
+                easing: 'cubicBezier(0.25, 1, 0.5, 1)',
+                update: function(anim) {
+                    irisRadiusScale = anim.animatables[0].target.value;
+                }
+            }, "+=200").add({
+                targets: '.header-anim',
+                opacity: [0, 1],
+                translateY: [-16, 0],
+                duration: 800
+            }, "-=800").add({
+                targets: ['.tracking-anim', '.heading-anim', '.body-anim', '.num-anim'],
+                opacity: [0, 1],
+                translateY: [30, 0],
+                delay: anime.stagger(150),
+                duration: 1000
+            }, "-=600");
+        }
+
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+
+            // Inertial Scroll Progression Tracking
+            currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.06;
+            updateWatchTransform();
+
+            // Handle Input Axis Mouse Damping
+            mouse.x += (mouse.targetX - mouse.x) * 0.05;
+            mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+            // Periodic Rendering Pipeline Updates
+            updateWatchFaceData();
+            drawIrisOverlay();
+            renderer.render(scene, camera);
+        }
+
+        // --- 8. GLOBAL EVENT LISTENERS INTERFACES ---
+        function initEventListeners() {
+            // Track Window Scroll Progression Percentage
+            window.addEventListener('scroll', () => {
+                const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+                if (maxScroll > 0) {
+                    targetScrollProgress = window.scrollY / maxScroll;
+                }
+            });
+
+            // Log Normalised Screen-Space Mouse Coordinates for Parallax Engine
+            window.addEventListener('mousemove', (e) => {
+                mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            // Fluid UI Adaptation Aspect Ratio Scale Adaptations
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                initIrisCanvas();
+            });
+        }
+
+        // Run Deployment Pipeline Lifecycle
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
